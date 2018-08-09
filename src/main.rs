@@ -62,6 +62,7 @@ fn main() {
     // `GET /user/:id`
     let list_one = warp::get(user_id.and_then(|id| user::retrieve_one_user(id)));
 
+    // `GET /registration`
     let register = warp::post(warp::path("registration").and(warp::body::form()).and_then(
         |form: RegisterForm| {
             if form.username.is_empty() || form.email.is_empty() || form.password.is_empty() || form.confirm_password.is_empty() {
@@ -85,6 +86,7 @@ fn main() {
         },
     ));
 
+    // `GET /login`
     let login = warp::path("login")
         .and(warp::body::form())
         .and_then(|form: LoginForm| {
@@ -104,6 +106,7 @@ fn main() {
         user_id.map_err(|_err| warp::reject::bad_request())
     });
 
+    // `GET /dashboard`
     let dashboard_path = warp::get(warp::path("dashboard"));
     let get_dashboard = dashboard_path.and(check_user).and_then(|user_id| {
         { http::Response::builder().body(format!("acces dashboard {}", user_id)) }
@@ -116,7 +119,7 @@ fn main() {
         .or(login)
         .or(get_dashboard);
 
-    let routes = api.with(warp::log("users"));
+    let routes = api.with(warp::log("api"));
 
     warp::serve(routes).run(([127, 0, 0, 1], 3030));
 }

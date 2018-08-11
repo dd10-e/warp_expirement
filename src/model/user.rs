@@ -2,8 +2,7 @@ use bcrypt::{verify};
 use diesel::{debug_query, pg::Pg, prelude::*};
 use etablish_connection::*;
 use repositery::user::{LoginForm, NewUser, PublicUserData, User};
-use warp;
-use warp::http::StatusCode;
+use warp::{self, http::StatusCode};
 
 pub fn retrieve_users() -> impl warp::Reply {
     use schema::users::dsl::*;

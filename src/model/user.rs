@@ -1,4 +1,4 @@
-use bcrypt::{verify};
+use bcrypt::verify;
 use diesel::{debug_query, pg::Pg, prelude::*};
 use etablish_connection::*;
 use repositery::user::{LoginForm, NewUser, PublicUserData, User};
@@ -83,9 +83,8 @@ pub fn login(username_form: &str, password_form: &str) -> Result<String, warp::R
 
 pub mod auth {
     use chrono::{DateTime, Utc};
-    use jwt::{decode, decode_header, encode, errors::Error, Algorithm, Header, Validation};
+    use jwt::{decode, encode, Header, Validation};
     use warp;
-    use warp::http::StatusCode;
 
     // 30 days
     const EXPIRATION_TIME: i64 = 60 * 60 * 24 * 30;
@@ -105,7 +104,7 @@ pub mod auth {
             date: utc_now.timestamp(),
         };
 
-        let token = match encode(&Header::default(), &claims, SECRET_KEY.as_ref()) {
+        match encode(&Header::default(), &claims, SECRET_KEY.as_ref()) {
             Ok(token) => return Ok(token),
             Err(_) => return Err(warp::reject::bad_request()),
         };
@@ -114,19 +113,18 @@ pub mod auth {
     pub fn verify_token(token: String) -> Result<String, warp::Rejection> {
         let utc_now: DateTime<Utc> = Utc::now();
 
-        let token_parsed =
-            match decode::<Claims>(&token, SECRET_KEY.as_ref(), &Validation::default()) {
-                Ok(token) => {
-                    if token.claims.date + EXPIRATION_TIME < utc_now.timestamp() {
-                        error!("Token is not longer valid !");
-                        return Err(warp::reject::bad_request());
-                    }
-                    return Ok(token.claims.user_id);
-                }
-                Err(_) => {
-                    error!("Can't decode token !");
+        match decode::<Claims>(&token, SECRET_KEY.as_ref(), &Validation::default()) {
+            Ok(token) => {
+                if token.claims.date + EXPIRATION_TIME < utc_now.timestamp() {
+                    error!("Token is not longer valid !");
                     return Err(warp::reject::bad_request());
                 }
-            };
+                return Ok(token.claims.user_id);
+            }
+            Err(_) => {
+                error!("Can't decode token !");
+                return Err(warp::reject::bad_request());
+            }
+        };
     }
 }

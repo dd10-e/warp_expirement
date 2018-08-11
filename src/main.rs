@@ -65,7 +65,11 @@ fn main() {
     // `GET /registration`
     let register = warp::post(warp::path("registration").and(warp::body::form()).and_then(
         |form: RegisterForm| {
-            if form.username.is_empty() || form.email.is_empty() || form.password.is_empty() || form.confirm_password.is_empty() {
+            if form.username.is_empty()
+                || form.email.is_empty()
+                || form.password.is_empty()
+                || form.confirm_password.is_empty()
+            {
                 if form.confirm_password != form.password {
                     return Err(warp::reject::bad_request());
                 }
@@ -97,8 +101,7 @@ fn main() {
                     http::Response::builder()
                         .header("Set-Cookie", &jwt[..])
                         .body(format!("{}", jwt))
-                })
-                .map_err(|_err| warp::reject::bad_request())
+                }).map_err(|_err| warp::reject::bad_request())
         });
 
     let check_user = warp::cookie("jwt").and_then(|auth: String| {
